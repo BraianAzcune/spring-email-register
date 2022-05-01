@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  postgres_db:
+    image: postgres:14.1
+    container_name: amigoscode-email-register-postgresDB
+    volumes:
+      - amigoscode_email_register_data:/var/lib/postgresql/data
+    env_file:
+      - ./.postgres.env
+    ports:
+      - "5600:5432"
+volumes:
+  amigoscode_email_register_data:
