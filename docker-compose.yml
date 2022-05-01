@@ -10,5 +10,11 @@ services:
       - ./.postgres.env
     ports:
       - "5600:5432"
+  maildev:
+        ports:
+            - '1080:1080'
+            - '1025:1025'
+        image: maildev/maildev
+
 volumes:
   amigoscode_email_register_data:
