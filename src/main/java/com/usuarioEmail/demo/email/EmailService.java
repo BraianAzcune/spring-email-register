@@ -24,6 +24,11 @@ public class EmailService implements EmailSender {
   @Async
   public void send(String to, String emailBody) {
     try {
+      Thread.sleep(10000L);
+    } catch (InterruptedException e1) {
+      e1.printStackTrace();
+    }
+    try {
       MimeMessage mimeMessage = javaMailSender.createMimeMessage();
       MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, "UTF-8");
       mimeMessageHelper.setText(emailBody, true);
