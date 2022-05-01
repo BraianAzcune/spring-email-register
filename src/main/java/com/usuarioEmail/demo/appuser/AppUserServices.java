@@ -1,5 +1,11 @@
 package com.usuarioEmail.demo.appuser;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+import com.usuarioEmail.demo.registration.token.ConfirmationToken;
+import com.usuarioEmail.demo.registration.token.ConfirmationTokenService;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -12,6 +18,7 @@ import lombok.AllArgsConstructor;
 public class AppUserServices implements UserDetailsService {
   private final static String USER_NOT_FOUND = "User with email %s not found";
   private final UserRepository appUserRepository;
+  private final ConfirmationTokenService confirmationTokenService;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
   @Override
@@ -21,14 +28,32 @@ public class AppUserServices implements UserDetailsService {
   }
 
   public String signUpUser(AppUser user){
-    boolean exist = appUserRepository.findByEmail(user.getEmail()).isPresent();
+    var userBack = appUserRepository.findByEmail(user.getEmail());
+    boolean exist = userBack.isPresent();
+
     if(exist){
+      // check if are equal user with userBack, if it is, and expiryDate pass, we
+      // continue.
       throw new IllegalStateException("User with email " + user.getEmail() + " already exists");
     }
     String encryptedPassword = bCryptPasswordEncoder.encode(user.getPassword());
     user.setPassword(encryptedPassword);
     appUserRepository.save(user);
-    // TODO: send confirmation token
-    return "it works";
+
+    String token = UUID.randomUUID().toString();
+    ConfirmationToken confirmationToken = new ConfirmationToken(
+        token,
+        LocalDateTime.now().plusMinutes(15),
+        user);
+    confirmationTokenService.save(confirmationToken);
+
+    return token;
+  }
+
+  public void enableAppUser(String email) {
+    var appUser = appUserRepository.findByEmail(email)
+        .orElseThrow(() -> new IllegalStateException("User with email " + email + " not found"));
+    appUser.setEnabled(true);
+    appUserRepository.save(appUser);
   }
 }
